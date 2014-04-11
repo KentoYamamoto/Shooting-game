@@ -1,2 +1,2 @@
-Shoting-game
+Shooting-game
 ============
