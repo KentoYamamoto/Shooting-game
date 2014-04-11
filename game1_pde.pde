@@ -2,17 +2,20 @@ PImage img;
 int i = 0;
 int game_score = 0;
 int bullet_now = 0;
-int bullet_number = 10;
+int bullet_number = 50;
+int bullet_timer_count = 0;
+int bullet_timer_time = 15; //60fps = 1 second
 float chara_x = 850/2, chara_y = 850/2;
 float chara_w = 200 , chara_h = 200;
 float chara_move_speed = 5;
 float bullet_speed = 10;
 float[][] bullet_x_y = new float[2][bullet_number];
-
+boolean bullet_timer = true;
 boolean keyState[];
 
 
 void setup(){
+    frameRate(120);
     size(850,850);
     keyState = new boolean[256];
     imageMode(CENTER);
@@ -28,6 +31,15 @@ void draw(){
     chara_move();
     score_display();
     game_score ++;
+    bullet();
+}
+
+void score_display(){
+    fill( 0 );
+    text(game_score,10,10);
+}
+
+void bullet(){
     for( int i=0; i< bullet_number; i++){
       if(bullet_x_y[0][i] != 0 && bullet_x_y[1][i] != 0)
         ellipse(bullet_x_y[0][i]+=bullet_speed, bullet_x_y[1][i], 10, 10);
@@ -41,18 +53,29 @@ void draw(){
             bullet_now --;
         }
     }
+    if(! bullet_timer){
+        bullet_timer_count++;
+        if(bullet_timer_count > bullet_timer_time){
+            bullet_timer = true;
+            bullet_timer_count = 0;
+        }
+    }
     if(keyState[32]){ //SPACE
       if(bullet_now < bullet_number-1){
-      bullet_x_y[0][bullet_now] = chara_x;
-      bullet_x_y[1][bullet_now] = chara_y;
-      bullet_now ++;
+        if(bullet_timer){
+          bullet_x_y[0][bullet_now] = chara_x;
+          bullet_x_y[1][bullet_now] = chara_y;
+          bullet_now ++;
+          bullet_timer = false;
+        }
       }
   }
-}
-
-void score_display(){
-    fill( 0 );
-    text(game_score,10,10);
+  if(keyState['s'%256]){
+      text("BURST!!", 30, 10);
+      bullet_timer_time = 3;
+  }else{
+      bullet_timer_time = 15;
+  }
 }
 
 void chara_move(){
