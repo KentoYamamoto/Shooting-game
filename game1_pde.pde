@@ -69,12 +69,24 @@ void chara_move(){
     if(keyState[LEFT%256]&& !(keyState[UP%256] || keyState[DOWN%256])){
         chara_x -= chara_move_speed;
     }
+    if(chara_w/2 > chara_x) {
+        chara_x = chara_w/2;
+    }
+    if(chara_x > width-chara_w/2 ) {
+        chara_x = width-chara_w/2;
+    }
+    if(chara_h/2 > chara_y){
+        chara_y = chara_h/2;
+    }
+    if(chara_y > height - chara_h/2){
+        chara_y = height - chara_h/2;
+    }
 }
 
 void keyPressed() {
   if(0<=key && key<256){ keyState[key] = true; }
   else if(0<=keyCode && keyCode<256){ keyState[keyCode] = true; }    
-  if(key == 32){
+  if(keyState[32]){ //SPACE
       if(bullet_now < bullet_number-1){
       bullet_x_y[0][bullet_now] = chara_x;
       bullet_x_y[1][bullet_now] = chara_y;
