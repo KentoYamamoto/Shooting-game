@@ -41,6 +41,13 @@ void draw(){
             bullet_now --;
         }
     }
+    if(keyState[32]){ //SPACE
+      if(bullet_now < bullet_number-1){
+      bullet_x_y[0][bullet_now] = chara_x;
+      bullet_x_y[1][bullet_now] = chara_y;
+      bullet_now ++;
+      }
+  }
 }
 
 void score_display(){
@@ -86,13 +93,7 @@ void chara_move(){
 void keyPressed() {
   if(0<=key && key<256){ keyState[key] = true; }
   else if(0<=keyCode && keyCode<256){ keyState[keyCode] = true; }    
-  if(keyState[32]){ //SPACE
-      if(bullet_now < bullet_number-1){
-      bullet_x_y[0][bullet_now] = chara_x;
-      bullet_x_y[1][bullet_now] = chara_y;
-      bullet_now ++;
-      }
-  }
+  
 }
 
 void keyReleased() {
