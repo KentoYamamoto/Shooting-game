@@ -45,7 +45,7 @@ void setup(){
     imageMode(CENTER);
     //name cost damage number now timer_time speed charge unlock
     bullet_data[0] = new Bullet("normal",1,1,20,0,15, 10,false,true);
-    bullet_data[1] = new Bullet("beam", 5, 10, 0, 0, 60, 20,false, true);
+    bullet_data[1] = new Bullet("beam", 2, 10, 3, 0, 60, 20,false, true);
     bullet_data[2] = new Bullet("ricochet", 5, 3, 3, 0, 15, 10, false, true);
     for(int i=0; i<256; ++i){ keyState[i] = false; }
     for(int i=0; i<bullet_data[0].number; ++i){ bullet_data[0].xy[0][i]=0; bullet_data[0].xy[1][i]=0;  }
@@ -101,8 +101,6 @@ void bullet(){
       }
       fill( 0 );
     }
-    //for
-    // Move_end
     if(! bullet_timer){
         bullet_timer_count++;
         if(bullet_timer_count > bullet_data[0].timer_time){
@@ -147,9 +145,6 @@ void bullet(){
        }
        beam_count = 0;
     }
-    if(keyState['d'%256]){
-
-    }
     if(keyState['s'%256]){
         text("BURST!!", 30, 10);
         bullet_data[0].timer_time = 3;
@@ -160,7 +155,7 @@ void bullet(){
 }
 
 void chara_data(){
-    if(chara_MP < 10 && frameCount%60 == 0){
+    if(chara_MP < chara_MAX_MP && frameCount%60 == 0){
         chara_MP ++;
     }
     float last_MP =  (float)chara_MP/ chara_MAX_MP;
