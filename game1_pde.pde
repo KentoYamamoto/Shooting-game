@@ -23,6 +23,7 @@ class Bullet{
      }
 }
 PImage img;
+PImage img2;
 int i = 0;
 int beam_count = 0;
 int beam_h = 0;
@@ -51,12 +52,16 @@ void setup(){
     for(int i=0; i<bullet_data[0].number; ++i){ bullet_data[0].xy[0][i]=0; bullet_data[0].xy[1][i]=0;  }
     for(int i=0; i<bullet_data[0].number; ++i){ bullet_data[0].hit[i] = false; }
     img = loadImage("chara.gif");
+    img2 = loadImage("chara_charge.gif");
 }
 
 void draw(){
     background( 255 );
     println(beam_count);
-    image(img, chara_x, chara_y, chara_w, chara_h);
+    if(keyState['a'%256]){
+      image(img2, chara_x, chara_y, chara_w, chara_h);
+    }else 
+      image(img, chara_x, chara_y, chara_w, chara_h);
     chara_move();
     score_display();
     game_score ++;
