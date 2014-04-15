@@ -25,6 +25,7 @@ class Bullet{
 PImage img;
 int i = 0;
 int beam_count = 0;
+int beam_h = 0;
 int game_score = 0;
 int chara_MAX_MP = 10;
 int chara_MP = chara_MAX_MP;
@@ -36,15 +37,16 @@ float chara_move_speed = 5;
 float bullet_speed = 10;
 boolean bullet_timer = true;
 boolean keyState[];
-Bullet[] bullet_data = new Bullet[2];
+Bullet[] bullet_data = new Bullet[3];
 
-void setup(){
+void setup()
     size(800,500);
     keyState = new boolean[256];
     imageMode(CENTER);
     //name cost damage number now timer_time speed charge unlock
     bullet_data[0] = new Bullet("normal",1,1,20,0,15, 10,false,true);
-    bullet_data[1] = new Bullet("beam", 2, 10, 3, 0, 60, 20,false, true);
+    bullet_data[1] = new Bullet("beam", 5, 10, 0, 0, 60, 20,false, true);
+    bullet_data[2] = new Bullet("ricochet", 5, 3, 3, 0, 15, 10, false, true);
     for(int i=0; i<256; ++i){ keyState[i] = false; }
     for(int i=0; i<bullet_data[0].number; ++i){ bullet_data[0].xy[0][i]=0; bullet_data[0].xy[1][i]=0;  }
     for(int i=0; i<bullet_data[0].number; ++i){ bullet_data[0].hit[i] = false; }
@@ -84,9 +86,9 @@ void bullet(){
         }
     }
     for(int i = 0; i< bullet_data[1].number; i++){
-      fill(128);
+      fill(0,0,255);
       if(bullet_data[1].xy[0][i] != 0 && bullet_data[1].xy[1][i] != 0)
-          rect(bullet_data[1].xy[0][i] += bullet_data[1].speed, bullet_data[1].xy[1][i], 100, 10);
+          rect(bullet_data[1].xy[0][i] += bullet_data[1].speed, bullet_data[1].xy[1][i], 10 * beam_h, beam_h);
       if(bullet_data[1].xy[0][i] > width || bullet_data[1].hit[i]){ //bullet reset
           bullet_data[1].xy[0][i] = 0;
           bullet_data[1].xy[1][i] = 0;
@@ -99,6 +101,8 @@ void bullet(){
       }
       fill( 0 );
     }
+    for
+    // Move_end
     if(! bullet_timer){
         bullet_timer_count++;
         if(bullet_timer_count > bullet_data[0].timer_time){
@@ -118,22 +122,33 @@ void bullet(){
       }
     }
     if(keyState['a'%256]){
-      beam_count ++;
+      if(beam_count < 180){
+          beam_count ++;
+      }
+      if(beam_count >= 180){
+        fill(0,0,255);
+      }
+      else{
+        fill( 0 );
+      }
+      ellipse(chara_x + chara_w/5, chara_y, beam_count / 6, beam_count / 6);
     }else if(beam_count > 0){
         bullet_data[1].damage = beam_count / 18;
-        if(bullet_data[1].now < bullet_data[1].number -1 && beam_count > 180){
+        if(bullet_data[1].now < bullet_data[1].number -1 ){
          if(bullet_timer && chara_MP - bullet_data[1].cost >= 0){
            bullet_data[1].xy[0][bullet_data[1].now] = chara_x;
            bullet_data[1].xy[1][bullet_data[1].now] = chara_y;
+           beam_h = beam_count / 6;
            chara_MP -= bullet_data[1].cost;
            bullet_data[1].now++;
            bullet_timer = false;
-           beam_count = 0;
+           
          }
-       }else{
-         ellipse(chara_x + chara_w/5, chara_y, beam_count / 6, beam_count / 6);
        }
        beam_count = 0;
+    }
+    if(keyState['d'%256]){
+
     }
     if(keyState['s'%256]){
         text("BURST!!", 30, 10);
@@ -210,9 +225,6 @@ void chara_move(){
 void keyPressed() {
   if(0<=key && key<256){ keyState[key] = true; }
   else if(0<=keyCode && keyCode<256){ keyState[keyCode] = true; }    
-//  if(key == 'a'){
-//    beam_count = 0;
-//  }
 }
 
 void keyReleased() {
