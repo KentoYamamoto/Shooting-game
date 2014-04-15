@@ -24,6 +24,7 @@ class Bullet{
 }
 PImage img;
 int i = 0;
+int beam_count = 0;
 int game_score = 0;
 int chara_MAX_MP = 10;
 int chara_MP = chara_MAX_MP;
@@ -43,7 +44,7 @@ void setup(){
     imageMode(CENTER);
     //name cost damage number now timer_time speed charge unlock
     bullet_data[0] = new Bullet("normal",1,1,20,0,15, 10,false,true);
-    bullet_data[1] = new Bullet("beam", 2, 2, 3, 0, 60, 20,false, true);
+    bullet_data[1] = new Bullet("beam", 2, 10, 3, 0, 60, 20,false, true);
     for(int i=0; i<256; ++i){ keyState[i] = false; }
     for(int i=0; i<bullet_data[0].number; ++i){ bullet_data[0].xy[0][i]=0; bullet_data[0].xy[1][i]=0;  }
     for(int i=0; i<bullet_data[0].number; ++i){ bullet_data[0].hit[i] = false; }
@@ -52,6 +53,7 @@ void setup(){
 
 void draw(){
     background( 255 );
+    println(beam_count);
     image(img, chara_x, chara_y, chara_w, chara_h);
     chara_move();
     score_display();
@@ -116,15 +118,22 @@ void bullet(){
       }
     }
     if(keyState['a'%256]){
-       if(bullet_data[1].now < bullet_data[1].number -1){
+      beam_count ++;
+    }else if(beam_count > 0){
+        bullet_data[1].damage = beam_count / 18;
+        if(bullet_data[1].now < bullet_data[1].number -1 && beam_count > 180){
          if(bullet_timer && chara_MP - bullet_data[1].cost >= 0){
            bullet_data[1].xy[0][bullet_data[1].now] = chara_x;
            bullet_data[1].xy[1][bullet_data[1].now] = chara_y;
            chara_MP -= bullet_data[1].cost;
            bullet_data[1].now++;
            bullet_timer = false;
+           beam_count = 0;
          }
+       }else{
+         ellipse(chara_x + chara_w/5, chara_y, beam_count / 6, beam_count / 6);
        }
+       beam_count = 0;
     }
     if(keyState['s'%256]){
         text("BURST!!", 30, 10);
@@ -139,13 +148,31 @@ void chara_data(){
     if(chara_MP < 10 && frameCount%60 == 0){
         chara_MP ++;
     }
-    for(int i=0; i<chara_MP; i++){
-        fill(0,0,255);
-        rect(i*width/chara_MAX_MP/2, 0, width/chara_MAX_MP/2, 10);
-        fill( 0 );
-    }
+    float last_MP =  (float)chara_MP/ chara_MAX_MP;
+    fill(0,0,255);
+    rect(0, 0, width/2 *last_MP, 10);
+    fill( 0 );
+
 }
 
+
+
+void chara_boss(){
+  if(boss_HP > 0){
+    rect(width, height/2, -100, 100);
+    text("boss"+boss_HP  , width - 50, height ,10);
+    for(int j = 0; j < bullet_data.length; j++){
+      for(int i = 0; i < bullet_data[j].number; i++){
+          if(width-100 < bullet_data[j].xy[0][i] && bullet_data[j].xy[0][i] < width && height /2 < bullet_data[j].xy[1][i] && bullet_data[j].xy[1][i] < height/2 + 100){
+            bullet_data[j].hit[i] = true;
+            boss_HP -= bullet_data[j].damage;
+          }
+      }
+    }
+  }
+}
+
+//↓ここから下いじらない
 void chara_move(){
     if(keyState[UP%256]){
         chara_y -= chara_move_speed;
@@ -180,26 +207,12 @@ void chara_move(){
         chara_y = height - chara_h/2;
     }
 }
-
-void chara_boss(){
-  if(boss_HP > 0){
-    rect(width, height/2, -100, 100);
-    text("boss"+boss_HP  , width - 50, height ,10);
-    for(int j = 0; j < bullet_data.length; j++){
-      for(int i = 0; i < bullet_data[j].number; i++){
-          if(width-100 < bullet_data[j].xy[0][i] && bullet_data[j].xy[0][i] < width && height /2 < bullet_data[j].xy[1][i] && bullet_data[j].xy[1][i] < height/2 + 100){
-            bullet_data[j].hit[i] = true;
-            boss_HP -= bullet_data[j].damage;
-          }
-      }
-    }
-  }
-}
-
 void keyPressed() {
   if(0<=key && key<256){ keyState[key] = true; }
   else if(0<=keyCode && keyCode<256){ keyState[keyCode] = true; }    
-  
+//  if(key == 'a'){
+//    beam_count = 0;
+//  }
 }
 
 void keyReleased() {
