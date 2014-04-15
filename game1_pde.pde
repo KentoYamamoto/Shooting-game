@@ -39,7 +39,7 @@ boolean bullet_timer = true;
 boolean keyState[];
 Bullet[] bullet_data = new Bullet[3];
 
-void setup()
+void setup(){
     size(800,500);
     keyState = new boolean[256];
     imageMode(CENTER);
@@ -101,7 +101,7 @@ void bullet(){
       }
       fill( 0 );
     }
-    for
+    //for
     // Move_end
     if(! bullet_timer){
         bullet_timer_count++;
