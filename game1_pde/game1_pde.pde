@@ -1,27 +1,3 @@
-class Bullet{
-    String name;
-    int cost;
-    int damage;
-    int number;
-    int now;
-    int timer_time; //60fps = 1 second
-    int speed;
-    boolean charge; 
-    boolean unlock;
-    float[][] xy;
-    boolean[] hit;
-    Bullet(String a, int b, int c, int d, int e, int f, int g, boolean h, boolean i){
-          name = a;
-          cost =b;
-          damage =c;
-          number =d;
-          speed =g;
-          charge = h;
-          unlock = i;
-          xy = new float[2][number]; 
-          hit = new boolean[number];
-     }
-}
 PImage img;
 PImage img2;
 int beam_count = 0;
@@ -43,7 +19,7 @@ Bullet[] bullet_data = new Bullet[3];
 
 void setup(){
     size(800,500);
-    frameRate(60);
+    frameRate(30);
     keyState = new boolean[256];
     imageMode(CENTER);
     //name cost damage number now timer_time speed charge unlock
@@ -86,7 +62,8 @@ void bullet(){
       if(bullet_data[m].xy[0][i] != 0 && bullet_data[m].xy[1][i] != 0){
         switch ( m ) {
           case 0: //normal
-            switch ( i /bullet_data[m].number/3){
+            println(i  );
+            switch ( i /(bullet_data[m].number/3)){
               case 0:
                 fill(255,0,0);
                 ellipse(bullet_data[m].xy[0][i] += bullet_speed, bullet_data[m].xy[1][i], 10, 10);
@@ -94,7 +71,6 @@ void bullet(){
               case 1:
                 fill(0,255,0);
                 ellipse(bullet_data[m].xy[0][i] += bullet_speed, bullet_data[m].xy[1][i]+=1, 10, 10);
-                println((bullet_data[m].number/3)*2 );
                 break;
               case 2:
                 fill(0,0,255);
@@ -125,26 +101,18 @@ void bullet(){
               if(bullet_data[m].now > 0)
                 bullet_data[m].now --;
             }
-            switch( i / bullet_data[m].number/3){
-              case 0:
                 for(int j = i; j < (bullet_data[m].number/3)-1; j++){
                     bullet_data[m].xy[0][j] = bullet_data[m].xy[0][j+1];
                     bullet_data[m].xy[1][j] = bullet_data[m].xy[1][j+1];
                 }
-                break;
-              case 1:
-                for(int j = (bullet_data[m].number/3) ; j < (bullet_data[m].number/3)*2-1; j++){
+                for(int j = (bullet_data[m].number/3)+1 ; j < (bullet_data[m].number/3)*2-1; j++){
                     bullet_data[m].xy[0][j] = bullet_data[m].xy[0][j+1];
                     bullet_data[m].xy[1][j] = bullet_data[m].xy[1][j+1];
                 }
-                break;
-              case 2:
-                for(int j = (bullet_data[m].number/3)*2 ; j < bullet_data[m].number-1; j++){
+                for(int j = (bullet_data[m].number/3)*2+1 ; j < bullet_data[m].number-1; j++){
                     bullet_data[m].xy[0][j] = bullet_data[m].xy[0][j+1];
                     bullet_data[m].xy[1][j] = bullet_data[m].xy[1][j+1];
                 }
-                break;
-            }
             if(i == 2){ //ricochet
               ricochet_hanten[i] = 1;
             }
@@ -154,7 +122,7 @@ void bullet(){
   }
     if(! bullet_timer){
         bullet_timer_count++;
-        if(bullet_timer_count > 10){//bullet_data[0].timer_time){
+        if(bullet_timer_count > 20){//bullet_data[0].timer_time){
             bullet_timer = true;
             bullet_timer_count = 0;
         }
@@ -285,3 +253,4 @@ void keyReleased() {
   if(0<=key && key<256){ keyState[key] = false; }
   else if(0<=keyCode && keyCode<256){ keyState[keyCode] = false; }    
 }
+
