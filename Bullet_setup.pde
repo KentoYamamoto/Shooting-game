@@ -1,6 +1,10 @@
 class Bullet_setup{
-  Bullet_setup(int n){
-    
+  bullet_setup(int i){
+    switch ( i /  ) {
+      case 0:
+      case 1:
+      case 2:
+    }
   }
 }
 
