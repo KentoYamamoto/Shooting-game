@@ -5,6 +5,8 @@ int beam_count = 0;
 int beam_h = 0;
 int[] ricochet_hanten;
 int game_score = 0;
+int chara_MAX_HP = 100;
+int chara_HP = chara_MAX_HP;
 int chara_MAX_MP = 100;
 int chara_MP = chara_MAX_MP;
 int chara_exp = 0;
@@ -19,7 +21,7 @@ float bullet_speed = 10;
 boolean keyState[];
 boolean change_mode = false;
 Bullet[] bullet_data = new Bullet[4];
-Enemy[] enemy_data = new Enemy[2];
+Enemy[] enemy_data = new Enemy[4];
 
 void setup(){
     size(800,500);
@@ -45,8 +47,12 @@ void setup(){
     //number hp x y
     enemy_data[0] = new Enemy(width-100, height/2);
     enemy_data[1] = new Enemy(width -100, 10);
+    enemy_data[2] = new Enemy(width, height/2);
+    enemy_data[3] = new Enemy(width, 10);    
     enemy_data[0].e_t01();
     enemy_data[1].e_t01();
+    enemy_data[2].e_t01();
+    enemy_data[3].e_t01();
     img = loadImage("chara.gif");
     img2 = loadImage("chara_charge.gif");
     img3 = loadImage("chara_status.gif");
@@ -242,6 +248,7 @@ void enemy_show(){
     if(enemy_data[i].show){
       fill(0);
       rect(enemy_data[i].x, enemy_data[i].y, enemy_data[i].w, enemy_data[i].h);
+      enemy_data[i].move(0);
     }
   }
 }
@@ -261,6 +268,11 @@ void hit_check(int m, int n){
           bullet_data[m].xy[1][n] = 0;
           enemy_data[i].damage(m,n);
         }
+        if(m == 3){ //wave
+          if( (x1-chara_x)*(x1-chara_x)+(y1-chara_y)*(y1-chara_y) <  wave_r[n]*wave_r[n]/4){ //とりあえず1箇所
+            enemy_data[i].damage(m,n);
+          }
+        }
       }
     }
   }
@@ -276,14 +288,20 @@ void chara_data(){
     }else {
       image(img, chara_x, chara_y, chara_w, chara_h);
     }
-    int[] chara_exp_table ={0,0, 1,2,4,8};
+    int[] chara_exp_table ={ 0, 0, 1, 2, 4, 8};
     if(chara_MP < chara_MAX_MP && frameCount%120 == 0){ //
         chara_MP +=1;
     }
+    //HPバー
+    float last_HP = (float)chara_HP/chara_MAX_HP;
+    fill(0,255,0);
+    rect(96, 20, 135 *last_HP, 10);
+    //MPバー
     float last_MP =  (float)chara_MP/ chara_MAX_MP;
     fill(0,0,255);
-    rect(96, 50, 135 *last_MP, 10);
+    rect(96, 50, 135 *last_MP, 10);  
     fill( 0 );
+    println("X =>"+mouseX +"Y =>"+ mouseY);
     for(int i=0; i<chara_exp_table.length; i++){
       if(chara_exp >= chara_exp_table[i]){
         if(chara_level < i){
@@ -292,8 +310,11 @@ void chara_data(){
         }
       }
     }
-    image(img, 50,50, 85, 85);
-    image(img3, 125, 50,250,100);
+    image(img, 50,50, 70, 70);  //キャラ画像
+    image(img3, 125, 50,250,100); //status画像
+    //HPとMPの文字
+    text(chara_HP +" / " + chara_MAX_HP, 150,15);
+    text(chara_MP +" / "+ chara_MAX_MP, 150,45);
     text("Lv."+chara_level, 50, 90);
 }
 void levelup(int n){

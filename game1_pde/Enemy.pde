@@ -12,8 +12,11 @@ class Enemy {
     y = Y;
   }
   void move(int n){
+    if(this.x > 700 || 300<this.x &&this.x < 500 )
+      this.y -= 1;
+    else
+      this.y += 1;
     this.x -= 1;
-    this.y += 1 ;
   }
   void e_t01(){
     int[][] n = {{ 0, 0, 50, 50}}; //代入用
