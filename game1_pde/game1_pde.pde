@@ -26,12 +26,13 @@ void setup(){
     frameRate(60);
     keyState = new boolean[256];
     imageMode(CENTER);
+    textAlign(CENTER);
     //rectMode(CENTER);
-    //name cost damage number now t_time t_count speed mode_MAX cooltime unlock
-    bullet_data[0] = new Bullet("normal", 1, 1, 60, 0, 15, 0, 10, 1, 5, true, true);
-    bullet_data[1] = new Bullet("beam", 2, 10, 3, 0, 60, 0, 20, 1, 1, true, true);
-    bullet_data[2] = new Bullet("ricochet", 5, 3, 5, 0, 10, 0, 10, 1, 1, true, true);
-    bullet_data[3] = new Bullet("wave", 10, 10, 10, 0, 300, 0, 20, 1, 1, true, true);
+    //name cost damage number t_time t_count speed mode_MAX cooltime unlock
+    bullet_data[0] = new Bullet("normal", 1, 1, 60, 0,15, 0, 10, 1, 5, true, true);
+    bullet_data[1] = new Bullet("beam", 2, 10, 3, 0,60, 0, 20, 1, 1, true, true);
+    bullet_data[2] = new Bullet("ricochet", 5, 3, 5, 0,10, 0, 10, 1, 1, true, true);
+    bullet_data[3] = new Bullet("wave", 10, 10, 10, 0,300, 0, 20, 1, 1, true, true);
     ricochet_hanten = new int[bullet_data[2].number];
     wave_r = new int[bullet_data[3].number];
     for(int i=0; i<256; ++i){ keyState[i] = false; }
@@ -74,28 +75,27 @@ void background_setting(int m){
 
 void bullet(){
   for( int m = 0; m < bullet_data.length; m++){
-    for( int i=0; i< bullet_data[m].number/bullet_data[m].mode_MAX; i++){
-      if(bullet_data[m].xy[0][i] != 0 && bullet_data[m].xy[1][i] != 0){
+    for( int i=0; i< bullet_data[m].number; i++){
+      if(bullet_data[m].xy[0][i] != 0 || bullet_data[m].xy[1][i] != 0){
         if(m == 0 ){//normal
-          switch (bullet_data[0].mode){
-              case 3:
-                fill(0,0,255);
-                if(bullet_data[m].xy[0][i + (bullet_data[m].number/bullet_data[m].mode_MAX)*3] != 0 && bullet_data[m].xy[0][i + (bullet_data[m].number/bullet_data[m].mode_MAX)*4]  != 0){
-                  ellipse(bullet_data[m].xy[0][i + (bullet_data[m].number/bullet_data[m].mode_MAX)*3] += bullet_data[m].speed, bullet_data[m].xy[1][i + (bullet_data[m].number/bullet_data[m].mode_MAX)*3] += (bullet_data[m].speed/5), 10, 10);
-                  ellipse(bullet_data[m].xy[0][i + (bullet_data[m].number/bullet_data[m].mode_MAX)*4] += bullet_data[m].speed, bullet_data[m].xy[1][i + (bullet_data[m].number/bullet_data[m].mode_MAX)*4] -= (bullet_data[m].speed/5), 10, 10);
-                }
-              case 2:
-                fill(255,0,0);
-                if(bullet_data[m].xy[0][i + bullet_data[m].number/bullet_data[m].mode_MAX] != 0 && bullet_data[m].xy[0][i + (bullet_data[m].number/bullet_data[m].mode_MAX)*2]  != 0){
-                  ellipse(bullet_data[m].xy[0][i + bullet_data[m].number/bullet_data[m].mode_MAX] += bullet_data[m].speed, bullet_data[m].xy[1][i + bullet_data[m].number/bullet_data[m].mode_MAX] += (bullet_data[m].speed/10), 10, 10);
-                  ellipse(bullet_data[m].xy[0][i + (bullet_data[m].number/bullet_data[m].mode_MAX)*2] += bullet_data[m].speed, bullet_data[m].xy[1][i + (bullet_data[m].number/bullet_data[m].mode_MAX)*2] -= (bullet_data[m].speed/10), 10, 10);
-                }
-                case 1:
-                fill(255,255,0);
-                ellipse(bullet_data[m].xy[0][i] += bullet_speed, bullet_data[m].xy[1][i] , 10, 10);
-                break;
-          }
-        }
+          switch( i / (bullet_data[m].number/bullet_data[m].mode_MAX)){
+            case 0:
+            ellipse(bullet_data[m].xy[0][i]+= bullet_data[m].speed, bullet_data[m].xy[1][i] , 10, 10);
+            break;
+            case 1:
+            ellipse(bullet_data[m].xy[0][i]+= bullet_data[m].speed, bullet_data[m].xy[1][i]+=2 , 10, 10);
+            break;  
+            case 2:
+            ellipse(bullet_data[m].xy[0][i]+= bullet_data[m].speed, bullet_data[m].xy[1][i]-=2 , 10, 10);
+              break;
+            case 3:
+            ellipse(bullet_data[m].xy[0][i]+= bullet_data[m].speed, bullet_data[m].xy[1][i]+=4 , 10, 10);
+            break;
+            case 4:
+            ellipse(bullet_data[m].xy[0][i]+= bullet_data[m].speed, bullet_data[m].xy[1][i]-=4 , 10, 10);
+            break;
+        }  
+      }
         if(m == 1){//beam
           fill( 0 );
           rect(bullet_data[1].xy[0][i] += bullet_data[1].speed, bullet_data[1].xy[1][i], 10 * beam_h, beam_h);
@@ -124,7 +124,7 @@ void bullet(){
     //bullet reset
     for( int i=0; i < bullet_data[m].number; i++){ 
       hit_check(m,i);
-      if(bullet_data[m].xy[0][i] > width || bullet_data[m].hit[i]){
+      if(bullet_data[m].xy[0][i] >= width || bullet_data[m].hit[i]){
         bullet_data[m].xy[0][i] = 0;
         bullet_data[m].xy[1][i] = 0;
         bullet_data[m].hit[i] = false;
@@ -152,46 +152,40 @@ void bullet(){
     }
   }
   if(keyState[32]){ //SPACE normal
-    if(bullet_data[0].now < bullet_data[0].number-1){
+    int nm_max = bullet_data[0].number/bullet_data[0].mode_MAX;
+    if(bullet_data[0].now[0] < bullet_data[0].number-1){
       if(bullet_data[0].cooltime && chara_MP - bullet_data[0].cost >= 0){ 
-        bullet_data[0].xy[0][bullet_data[0].now] = chara_x;
-        bullet_data[0].xy[1][bullet_data[0].now] = chara_y;
+        bullet_data[0].xy[0][bullet_data[0].now[0]] = chara_x;
+        bullet_data[0].xy[1][bullet_data[0].now[0]] = chara_y;
         chara_MP -= bullet_data[0].cost;
-        if(chara_exp > 0){
-          if(bullet_data[0].mode == chara_level){
-            change_mode = true;
-          }
-          if(change_mode){
-            bullet_data[0].mode = 3;
-            for(int i=0; i<bullet_data[0].number; ++i){ bullet_data[0].xy[0][i]=0; bullet_data[0].xy[1][i]=0;  }
-            change_mode = false;
-          }
+        bullet_data[0].now[0] = (bullet_data[0].now[0]+1)%(nm_max);
+         bullet_data[0].cooltime = false;
           switch (bullet_data[0].mode){
             case 3:
-              if(bullet_data[0].xy[0][bullet_data[0].now + (bullet_data[0].number / bullet_data[0].mode_MAX)*3] == 0 && bullet_data[0].xy[1][bullet_data[0].now + (bullet_data[0].number / bullet_data[0].mode_MAX)*3] == 0){
-                bullet_data[0].xy[0][bullet_data[0].now + (bullet_data[0].number / bullet_data[0].mode_MAX)*3] = chara_x;
-                bullet_data[0].xy[1][bullet_data[0].now + (bullet_data[0].number / bullet_data[0].mode_MAX)*3] = chara_y;
+              if(bullet_data[0].xy[0][bullet_data[0].now[3]] == 0 && bullet_data[0].xy[1][bullet_data[0].now[3]] == 0){
+                bullet_data[0].xy[0][bullet_data[0].now[3]] = chara_x;
+                bullet_data[0].xy[1][bullet_data[0].now[3]] = chara_y;
+                 bullet_data[0].now[3] =  (bullet_data[0].now[3]+1)%nm_max +nm_max*3;
               }
-              if(bullet_data[0].xy[0][bullet_data[0].now + (bullet_data[0].number / bullet_data[0].mode_MAX)*4] == 0 && bullet_data[0].xy[1][bullet_data[0].now + (bullet_data[0].number / bullet_data[0].mode_MAX)*4] == 0){
-                bullet_data[0].xy[0][bullet_data[0].now + (bullet_data[0].number / bullet_data[0].mode_MAX)*4] = chara_x;
-                bullet_data[0].xy[1][bullet_data[0].now + (bullet_data[0].number / bullet_data[0].mode_MAX)*4] = chara_y;
+              if(bullet_data[0].xy[0][bullet_data[0].now[4]] == 0 && bullet_data[0].xy[1][bullet_data[0].now[4]] == 0){
+                bullet_data[0].xy[0][bullet_data[0].now[4]] = chara_x;
+                bullet_data[0].xy[1][bullet_data[0].now[4]] = chara_y;
+                bullet_data[0].now[4] =  (bullet_data[0].now[4]+1)%nm_max +nm_max*4;
               }
             case 2:
-              if(bullet_data[0].xy[0][bullet_data[0].now + (bullet_data[0].number / bullet_data[0].mode_MAX)] == 0 && bullet_data[0].xy[1][bullet_data[0].now + (bullet_data[0].number / bullet_data[0].mode_MAX)] == 0){
-                bullet_data[0].xy[0][bullet_data[0].now + (bullet_data[0].number / bullet_data[0].mode_MAX)] = chara_x;
-                bullet_data[0].xy[1][bullet_data[0].now + (bullet_data[0].number / bullet_data[0].mode_MAX)] = chara_y;
+              if(bullet_data[0].xy[0][bullet_data[0].now[1]] == 0 && bullet_data[0].xy[1][bullet_data[0].now[1]] == 0){
+                bullet_data[0].xy[0][bullet_data[0].now[1]] = chara_x;
+                bullet_data[0].xy[1][bullet_data[0].now[1]] = chara_y;
+                bullet_data[0].now[1] =  (bullet_data[0].now[1]+1)%nm_max +nm_max;
               }
-              if(bullet_data[0].xy[0][bullet_data[0].now + (bullet_data[0].number / bullet_data[0].mode_MAX)*2] == 0 && bullet_data[0].xy[1][bullet_data[0].now + (bullet_data[0].number / bullet_data[0].mode_MAX)*2] == 0){
-                bullet_data[0].xy[0][bullet_data[0].now + (bullet_data[0].number / bullet_data[0].mode_MAX)*2] = chara_x;
-                bullet_data[0].xy[1][bullet_data[0].now + (bullet_data[0].number / bullet_data[0].mode_MAX)*2] = chara_y;
+              if(bullet_data[0].xy[0][bullet_data[0].now[2]] == 0 && bullet_data[0].xy[1][bullet_data[0].now[2]] == 0){
+                bullet_data[0].xy[0][bullet_data[0].now[2]] = chara_x;
+                bullet_data[0].xy[1][bullet_data[0].now[2]] = chara_y;
+                bullet_data[0].now[2] =  (bullet_data[0].now[2]+1)%nm_max +nm_max*2;
               }
               break;
           }
-        }
-        if(bullet_data[0].now < bullet_data[0].number/bullet_data[0].mode_MAX){
-          bullet_data[0].now = (bullet_data[0].now + 1)%(bullet_data[0].number/bullet_data[0].mode_MAX);
-          bullet_data[0].cooltime = false;
-        }
+        
       }
     }
   }
@@ -207,13 +201,13 @@ void bullet(){
     ellipse(chara_x + chara_w/5, chara_y, beam_count / 6, beam_count / 6);
   }else if(beam_count > 0){
     bullet_data[1].damage = beam_count / 18;
-    if(bullet_data[1].now < bullet_data[1].number ){
+    if(bullet_data[1].now[0] < bullet_data[1].number ){
       if(bullet_data[1].cooltime && chara_MP - bullet_data[1].cost >= 0){
-        bullet_data[1].xy[0][bullet_data[1].now] = chara_x;
-        bullet_data[1].xy[1][bullet_data[1].now] = chara_y;
+        bullet_data[1].xy[0][bullet_data[1].now[0]] = chara_x;
+        bullet_data[1].xy[1][bullet_data[1].now[0]] = chara_y;
         beam_h = beam_count / 6;
         chara_MP -= bullet_data[1].cost;
-        bullet_data[1].now = (bullet_data[1].now + 1)%bullet_data[1].number;
+        bullet_data[1].now[0] = (bullet_data[1].now[0] + 1)%bullet_data[1].number;
         bullet_data[1].cooltime = false;
       }
     }
@@ -221,53 +215,26 @@ void bullet(){
   }
   if(keyState['r'%256]){ //ricochet
       if(bullet_data[2].cooltime && chara_MP - bullet_data[2].cost >= 0){
-       if(bullet_data[2].xy[0][bullet_data[2].now] == 0 && bullet_data[2].xy[1][bullet_data[2].now] == 0){
-        bullet_data[2].xy[0][bullet_data[2].now] = chara_x;
-        bullet_data[2].xy[1][bullet_data[2].now] = chara_y;
+       if(bullet_data[2].xy[0][bullet_data[2].now[0]] == 0 && bullet_data[2].xy[1][bullet_data[2].now[0]] == 0){
+        bullet_data[2].xy[0][bullet_data[2].now[0]] = chara_x;
+        bullet_data[2].xy[1][bullet_data[2].now[0]] = chara_y;
         chara_MP -= bullet_data[2].cost;
-        bullet_data[2].now = (bullet_data[2].now + 1)%bullet_data[2].number;
+        bullet_data[2].now[0] = (bullet_data[2].now[0] + 1)%bullet_data[2].number;
         bullet_data[2].cooltime = false;
        }
     }
   }
   if(keyState['w'%256]){ //wave
     if(bullet_data[3].cooltime && chara_MP - bullet_data[3].cost >= 0){
-      if(bullet_data[3].xy[0][bullet_data[3].now] == 0 && bullet_data[3].xy[1][bullet_data[3].now] == 0){
-        bullet_data[3].xy[0][bullet_data[3].now] = chara_x;
-        bullet_data[3].xy[1][bullet_data[3].now] = chara_y;
+      if(bullet_data[3].xy[0][bullet_data[3].now[0]] == 0 && bullet_data[3].xy[1][bullet_data[3].now[0]] == 0){
+        bullet_data[3].xy[0][bullet_data[3].now[0]] = chara_x;
+        bullet_data[3].xy[1][bullet_data[3].now[0]] = chara_y;
         chara_MP -= bullet_data[3].cost;
-        bullet_data[3].now = (bullet_data[3].now + 1)%bullet_data[3].number;
+        bullet_data[3].now[0] = (bullet_data[3].now[0] + 1)%bullet_data[3].number;
         bullet_data[3].cooltime = false;
       } 
     }
-
   }
-}
-void chara(){
-  chara_data();
-  chara_move();
-}
-void chara_data(){
-    if(keyState['a'%256]){
-      image(img2, chara_x, chara_y, chara_w, chara_h);
-    }else {
-      image(img, chara_x, chara_y, chara_w, chara_h);
-    }
-    int[] chara_exp_table ={0,1,2,4,8};
-    if(chara_MP < chara_MAX_MP && frameCount%60 == 0){ //
-        chara_MP +=5;
-    }
-    float last_MP =  (float)chara_MP/ chara_MAX_MP;
-    fill(0,0,255);
-    rect(95, 40, width/2 *last_MP, 10);
-    fill( 0 );
-    for(int i=0; i<chara_exp_table.length; i++){
-      if(chara_exp >= chara_exp_table[i]){
-        chara_level = i;
-      }
-    }
-    println(mouseX+" "+mouseY);
-    image(img3, 125, 50,250,100);
 }
 
 void enemy_show(){
@@ -290,6 +257,8 @@ void hit_check(int m, int n){
         int y2 = y1 + enemy_data[i].hit_scale[j][3];
         if(x1 < bullet_data[m].xy[0][n] && bullet_data[m].xy[0][n] < x2 && y1 < bullet_data[m].xy[1][n] && bullet_data[m].xy[1][n] < y2){     
           bullet_data[m].hit[n] = true;
+          bullet_data[m].xy[0][n] = 0;
+          bullet_data[m].xy[1][n] = 0;
           enemy_data[i].damage(m,n);
         }
       }
@@ -297,6 +266,44 @@ void hit_check(int m, int n){
   }
 }
 
+void chara(){
+  chara_data();
+  chara_move();
+}
+void chara_data(){
+    if(keyState['a'%256]){
+      image(img2, chara_x, chara_y, chara_w, chara_h);
+    }else {
+      image(img, chara_x, chara_y, chara_w, chara_h);
+    }
+    int[] chara_exp_table ={0,0, 1,2,4,8};
+    if(chara_MP < chara_MAX_MP && frameCount%120 == 0){ //
+        chara_MP +=1;
+    }
+    float last_MP =  (float)chara_MP/ chara_MAX_MP;
+    fill(0,0,255);
+    rect(96, 50, 135 *last_MP, 10);
+    fill( 0 );
+    for(int i=0; i<chara_exp_table.length; i++){
+      if(chara_exp >= chara_exp_table[i]){
+        if(chara_level < i){
+          chara_level = i;
+          levelup(i);
+        }
+      }
+    }
+    image(img, 50,50, 85, 85);
+    image(img3, 125, 50,250,100);
+    text("Lv."+chara_level, 50, 90);
+}
+void levelup(int n){
+  switch ( n ){
+    case 2:
+      bullet_data[0].mode = 3;
+      for(int i=0; i<bullet_data[0].number; ++i){ bullet_data[0].xy[0][i]=0; bullet_data[0].xy[1][i]=0;  }
+      break;
+  }
+}
 //↓ここから下いじらない
 void chara_move(){
     if(keyState[UP%256]){
@@ -325,8 +332,8 @@ void chara_move(){
     if(chara_x > width-chara_w/2 ) {
         chara_x = width-chara_w/2;
     }
-    if(chara_h/2 > chara_y){
-        chara_y = chara_h/2;
+    if(chara_h/2+100 > chara_y){
+        chara_y = chara_h/2+100;
     }
     if(chara_y > height - chara_h/2){
         chara_y = height - chara_h/2;
