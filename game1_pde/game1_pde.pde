@@ -60,9 +60,9 @@ void setup(){
  
 void draw(){
     background( 255 );
+    bullet(); //bullet3のwaveのせいで一番先に実行しないと後ろが消える ellipseで中の円を透過できればどこでも可
     enemy_show();
     score_show();
-    bullet();
     chara();
 }
 
@@ -320,8 +320,11 @@ void chara_data(){
 void levelup(int n){
   switch ( n ){
     case 2:
-      bullet_data[0].mode = 3;
+      bullet_data[0].mode = 2;
       for(int i=0; i<bullet_data[0].number; ++i){ bullet_data[0].xy[0][i]=0; bullet_data[0].xy[1][i]=0;  }
+      break;
+    case 3:
+      bullet_data[0].mode = 3;
       break;
   }
 }
