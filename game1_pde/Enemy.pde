@@ -1,9 +1,12 @@
 class Enemy {
   int hp;
+  int hp_max;
   int x;
   int y;
   int w;
   int h;
+  int atk;
+  float def;
   int exp;
   int[][] hit_scale; 
   boolean show;
@@ -26,17 +29,22 @@ class Enemy {
         hit_scale[i][j] = n[i][j];
       }
     }
-    hp = 5;
-    w = 50;
-    h = 50;
+    hp_max =5;
+    hp = hp_max;
+    w = 25;
+    h = 25;
+    atk = 1;
+    def = 1.0;
     exp = 1;
     show = true;
   }
   void damage(int m, int n){
-    this.hp -=bullet_data[m].damage;
+    this.hp -=bullet_data[m].damage*def;
     if(this.hp <= 0){
       chara_exp += this.exp;
       this.show = false;
+      x = 0;
+      y = 0;
     }
   }
 }

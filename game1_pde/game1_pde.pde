@@ -1,6 +1,8 @@
 PImage img;
 PImage img2;
 PImage img3;
+PImage[] icon = new PImage[4];
+int display_mode =0;
 int beam_count = 0;
 int beam_h = 0;
 int[] ricochet_hanten;
@@ -11,6 +13,7 @@ int chara_MAX_MP = 100;
 int chara_MP = chara_MAX_MP;
 int chara_exp = 0;
 int chara_level = 0;
+int chara_cool_count = 0;
 int boss_HP = 10;
 int wave_ring = 15;
 int[] wave_r;
@@ -20,6 +23,7 @@ float chara_move_speed = 5;
 float bullet_speed = 10;
 boolean keyState[];
 boolean change_mode = false;
+boolean chara_cool = false;
 Bullet[] bullet_data = new Bullet[4];
 Enemy[] enemy_data = new Enemy[4];
 
@@ -29,7 +33,6 @@ void setup(){
     keyState = new boolean[256];
     imageMode(CENTER);
     textAlign(CENTER);
-    //rectMode(CENTER);
     //name cost damage number t_time t_count speed mode_MAX cooltime unlock
     bullet_data[0] = new Bullet("normal", 1, 1, 60, 0,15, 0, 10, 1, 5, true, true);
     bullet_data[1] = new Bullet("beam", 2, 10, 3, 0,60, 0, 20, 1, 1, true, true);
@@ -43,8 +46,8 @@ void setup(){
     }
     for(int i=0; i<bullet_data[0].number; ++i){ bullet_data[0].hit[i] = false; }
     for(int i=0; i<bullet_data[2].number; ++i){ ricochet_hanten[i] = 1; }
-    for(int i=0; i<bullet_data[3].number; ++i){ wave_r[i] = 100; }
-    //number hp x y
+    for(int i=0; i<bullet_data[3].number; ++i){ wave_r[i] = 0; }
+    // x y
     enemy_data[0] = new Enemy(width-100, height/2);
     enemy_data[1] = new Enemy(width -100, 10);
     enemy_data[2] = new Enemy(width, height/2);
@@ -56,19 +59,32 @@ void setup(){
     img = loadImage("chara.gif");
     img2 = loadImage("chara_charge.gif");
     img3 = loadImage("chara_status.gif");
+    icon[0] = loadImage("normal.png");
+    icon[1] = loadImage("beam.png");
+    icon[2] = loadImage("ricochet.png");
+    icon[3] = loadImage("wave.png");
 }
  
 void draw(){
-    background( 255 );
-    bullet(); //bullet3のwaveのせいで一番先に実行しないと後ろが消える ellipseで中の円を透過できればどこでも可
-    enemy_show();
-    score_show();
-    chara();
+  switch(display_mode){
+    case 0:
+      background( 255 );
+      bullet(); //bullet3のwaveのせいで一番先に実行しないと後ろが消える ellipseで中の円を透過できればどこでも可
+      enemy_show();
+      chara();
+      break;
+    case 1:
+      d_game_over();
+      break;
+  }
+  //debug
+  if(keyState['l'%256]){
+    setup();
+  }
 }
 
-void score_show(){
-    fill( 0 );
-    text(game_score,10,10);
+void d_game_over(){
+    background(0);
 }
 
 void background_setting(int m){
@@ -129,7 +145,7 @@ void bullet(){
     }
     //bullet reset
     for( int i=0; i < bullet_data[m].number; i++){ 
-      hit_check(m,i);
+      b_hit_check(m,i);
       if(bullet_data[m].xy[0][i] >= width || bullet_data[m].hit[i]){
         bullet_data[m].xy[0][i] = 0;
         bullet_data[m].xy[1][i] = 0;
@@ -191,7 +207,6 @@ void bullet(){
               }
               break;
           }
-        
       }
     }
   }
@@ -235,6 +250,7 @@ void bullet(){
       if(bullet_data[3].xy[0][bullet_data[3].now[0]] == 0 && bullet_data[3].xy[1][bullet_data[3].now[0]] == 0){
         bullet_data[3].xy[0][bullet_data[3].now[0]] = chara_x;
         bullet_data[3].xy[1][bullet_data[3].now[0]] = chara_y;
+        wave_r[bullet_data[3].now[0]] = 100;
         chara_MP -= bullet_data[3].cost;
         bullet_data[3].now[0] = (bullet_data[3].now[0] + 1)%bullet_data[3].number;
         bullet_data[3].cooltime = false;
@@ -247,16 +263,19 @@ void enemy_show(){
   for (int i = 0; i < enemy_data.length; i++) {
     if(enemy_data[i].show){
       fill(0);
-      rect(enemy_data[i].x, enemy_data[i].y, enemy_data[i].w, enemy_data[i].h);
+      rect(enemy_data[i].x, enemy_data[i].y, enemy_data[i].w, enemy_data[i].h); //画像でもok
+      fill(0,255,0);
+      float last_hp = (float)enemy_data[i].hp / enemy_data[i].hp_max;
+      rect(enemy_data[i].x+(enemy_data[i].w-20)/2 , enemy_data[i].y - 10, 20*last_hp, 2);
       enemy_data[i].move(0);
     }
   }
 }
 
-void hit_check(int m, int n){
+void b_hit_check(int m, int n){ // b =bullet
   bullet_data[m].hit[n] = false;
   for (int i = 0; i < enemy_data.length; i++) {
-    if(enemy_data[i].show){
+    if(enemy_data[i].show&& 0<= enemy_data[i].x && enemy_data[i].x <= width && 0 <= enemy_data[i].y && enemy_data[i].y <= height){
       for (int j = 0; j < enemy_data[i].hit_scale.length; j++) {
         int x1 = enemy_data[i].hit_scale[j][0] + enemy_data[i].x;
         int x2 = x1 + enemy_data[i].hit_scale[j][2];
@@ -281,13 +300,27 @@ void hit_check(int m, int n){
 void chara(){
   chara_data();
   chara_move();
+  c_hit_check();
+  if(chara_cool){
+    chara_cool_count ++;
+    if(chara_cool_count >= 60){
+      chara_cool =false;
+      chara_cool_count =0;
+    }
+  }
+  if(chara_HP <= 0){
+    display_mode = 1;
+  }
 }
 void chara_data(){
-    if(keyState['a'%256]){
+  if(!chara_cool || frameCount%7 == 0){
+    if(keyState['a'%256]){ //charge
       image(img2, chara_x, chara_y, chara_w, chara_h);
-    }else {
+    }else { //
       image(img, chara_x, chara_y, chara_w, chara_h);
     }
+    text(chara_HP +"/"+ chara_MP,chara_x, chara_y - chara_h/2);
+  }
     int[] chara_exp_table ={ 0, 0, 1, 2, 4, 8};
     if(chara_MP < chara_MAX_MP && frameCount%120 == 0){ //
         chara_MP +=1;
@@ -295,13 +328,12 @@ void chara_data(){
     //HPバー
     float last_HP = (float)chara_HP/chara_MAX_HP;
     fill(0,255,0);
-    rect(96, 20, 135 *last_HP, 10);
+    rect(80, 15, 145 *last_HP, 10);
     //MPバー
     float last_MP =  (float)chara_MP/ chara_MAX_MP;
     fill(0,0,255);
-    rect(96, 50, 135 *last_MP, 10);  
+    rect(80, 30, 145 *last_MP, 10);  
     fill( 0 );
-    println("X =>"+mouseX +"Y =>"+ mouseY);
     for(int i=0; i<chara_exp_table.length; i++){
       if(chara_exp >= chara_exp_table[i]){
         if(chara_level < i){
@@ -310,12 +342,22 @@ void chara_data(){
         }
       }
     }
-    image(img, 50,50, 70, 70);  //キャラ画像
-    image(img3, 125, 50,250,100); //status画像
-    //HPとMPの文字
-    text(chara_HP +" / " + chara_MAX_HP, 150,15);
-    text(chara_MP +" / "+ chara_MAX_MP, 150,45);
-    text("Lv."+chara_level, 50, 90);
+    image(img, 35,35, 90, 90);  //キャラ画像
+    image(img3, 125, 35,250,70); //status画像
+    for(int i =0; i < icon.length; i++){
+      image(icon[i], 88+ 15*i, 53 ,15, 15);
+      if(!bullet_data[i].cooltime){
+        fill(0, 80);
+        rect(80+15*i, 45, 15, 15);
+        fill(0);
+      }
+    }
+    //Level
+    rect(10, 50, 30, 10);
+    fill(255);
+    text("Lv."+chara_level, 30, 60);
+    println(mouseX +" "+mouseY);
+    fill(0);
 }
 void levelup(int n){
   switch ( n ){
@@ -328,6 +370,18 @@ void levelup(int n){
       break;
   }
 }
+
+void c_hit_check(){
+  for(int i=0; i < enemy_data.length; i++){
+    if((enemy_data[i].x - chara_x)*(enemy_data[i].x - chara_x) + (enemy_data[i].y - chara_y) * (enemy_data[i].y - chara_y) < chara_w*chara_w/4){
+      if(!chara_cool){
+        chara_HP -= enemy_data[i].atk;
+        chara_cool = true;
+      }
+    }
+  }
+}
+
 //↓ここから下いじらない
 void chara_move(){
     if(keyState[UP%256]){
