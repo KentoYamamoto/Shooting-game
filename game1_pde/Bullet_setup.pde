@@ -1,16 +1,3 @@
-class Bullet_setup{
-  Bullet_setup(int n){
-    switch (n){
-      case 0:
-        break;
-      case 1:
-        break;
-      case 2:
-        break;
-    }
-  }
-}
-
 class Bullet{
     String name;
     int cost;

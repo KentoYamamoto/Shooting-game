@@ -17,16 +17,22 @@ int chara_level = 0;
 int chara_cool_count = 0;
 int boss_HP = 10;
 int wave_ring = 15;
+int servant_now = 0;
+int servant_number = 10;
 int[] wave_r;
 float[] moon_count;
 float chara_x = 850/2, chara_y = 850/2;
 float chara_w = 100 , chara_h = 100; 
 float chara_move_speed = 5;
 float bullet_speed = 10;
+float[] servant_x;
+float[] servant_y;
+int servant_count;
+boolean servant_f;
 boolean keyState[];
 boolean change_mode = false;
 boolean chara_cool = false;
-Bullet[] bullet_data = new Bullet[5];
+Bullet[] bullet_data = new Bullet[7];
 Enemy[] enemy_data = new Enemy[4];
 
 void setup(){
@@ -35,15 +41,19 @@ void setup(){
     keyState = new boolean[256];
     imageMode(CENTER);
     textAlign(CENTER);
-    //name cost damage number t_time t_count speed mode_MAX cooltime unlock
+    //name cost damage number now t_time t_count speed mode m_MAX cooltime unlock
     bullet_data[0] = new Bullet("normal", 1, 10, 60, 0,15, 0, 10, 1, 5, true, true);
     bullet_data[1] = new Bullet("beam", 2, 10, 3, 0, 60, 0, 20, 1, 1, true, true);
     bullet_data[2] = new Bullet("ricochet", 5, 30, 5, 0,10, 0, 10, 1, 1, true, true);
     bullet_data[3] = new Bullet("wave", 10, 100, 10, 0,300, 0, 20, 1, 1, true, true);
-    bullet_data[4] = new Bullet("moon", 10, 20, 4, 0, 15, 0, 10, 1, 1, true, true);//thunder 
+    bullet_data[4] = new Bullet("moon", 10, 20, 4, 0, 15, 0, 10, 1, 1, true, true);
+    bullet_data[5] = new Bullet("thunder", 20, 100, 10, 0, 15, 0, 15, 1, 1, true, true); 
+    bullet_data[6] = new Bullet("servant", 20, 10, 1, 0, 15, 0, 15, 1, 3, true, true);
     ricochet_hanten = new int[bullet_data[2].number];
     wave_r = new int[bullet_data[3].number];
     moon_count = new float[bullet_data[4].number];
+    servant_x = new float[servant_number];
+    servant_y = new float[servant_number];
     for(int i=0; i<256; ++i){ keyState[i] = false; }
     for(int h=0;h<bullet_data.length;h++){ //初期化
       for(int i=0; i<bullet_data[h].number; ++i){ bullet_data[h].xy[0][i]=0; bullet_data[h].xy[1][i]=0;  }
@@ -70,6 +80,7 @@ void setup(){
 }
  
 void draw(){
+  println(servant_now);
   switch(display_mode){
     case 0:
       background( 255 );
@@ -127,7 +138,7 @@ void bullet(){
           rect(bullet_data[1].xy[0][i] += bullet_data[1].speed, bullet_data[1].xy[1][i], 20 * beam_h, beam_h);
         }
         if(m == 2){//ricochet
-          rect(bullet_data[2].xy[0][i] += (bullet_data[2].speed),  bullet_data[2].xy[1][i] += (bullet_data[2].speed*4*ricochet_hanten[i]), 10, 10);
+          rect(bullet_data[2].xy[0][i] += (bullet_data[2].speed),  bullet_data[2].xy[1][i] += (bullet_data[2].speed*2*ricochet_hanten[i]), 10, 10);
           if( bullet_data[2].xy[1][i] > height ){
             bullet_data[2].xy[1][i] = height;
             ricochet_hanten[i] = -1;
@@ -138,7 +149,7 @@ void bullet(){
           }
         }
         if(m == 3){ //wave
-          fill(0,60);
+          fill(wave_r[i]/200*100);
           ellipse(bullet_data[3].xy[0][i], bullet_data[3].xy[1][i], wave_r[i], wave_r[i]);
           fill(255);
           ellipse(bullet_data[3].xy[0][i], bullet_data[3].xy[1][i], wave_r[i] - wave_ring, wave_r[i] - wave_ring);
@@ -150,6 +161,19 @@ void bullet(){
           ellipse(-1*sin(moon_count[i])*90+chara_x,cos(moon_count[i])*90+chara_y,10,10);
           bullet_data[4].xy[0][i] = -1*sin(moon_count[i])*90+chara_x;
           bullet_data[4].xy[1][i] = cos(moon_count[i])*90+chara_y;
+        }
+        if(m == 5){ //thunder
+          rect(bullet_data[5].xy[0][i], 0, 10, height);
+        }
+        if(m == 6){ //servant
+          bullet_data[6].xy[0][0] = chara_x-chara_w/2;
+          bullet_data[6].xy[1][0] = chara_y-chara_w/2-20;
+          rect(bullet_data[6].xy[0][0], bullet_data[6].xy[1][0], 20, 10);
+          for(int s=0; s < servant_x.length; s++){
+            if(servant_x[s] != 0 && servant_y[s] != 0){
+              ellipse(servant_x[s]+=bullet_data[6].speed, servant_y[s], 10, 10);
+            }
+          }
         }
       }
     }
@@ -165,6 +189,16 @@ void bullet(){
     }
   }
   bullet_pressedkey();
+  
+  if(servant_f){
+    servant_count ++;
+    if(servant_count > 60 && servant_x[servant_now] ==0 && servant_y[servant_now] == 0){
+      servant_x[servant_now] = bullet_data[6].xy[0][0];
+      servant_y[servant_now] = bullet_data[6].xy[1][0];
+      servant_count = 0;
+      servant_now = (servant_now+1)%servant_number;
+    }
+  }
 }
 
 void bullet_reset(int m){
@@ -297,6 +331,29 @@ void bullet_pressedkey(){
       }
     }
   }
+  if(keyState['t'%256]){ //thunder
+    if(bullet_data[5].cooltime && chara_MP - bullet_data[5].cost >= 0){
+      if(bullet_data[5].xy[0][bullet_data[5].now[0]] == 0 && bullet_data[5].xy[1][bullet_data[5].now[0]] == 0){
+        bullet_data[5].xy[0][bullet_data[5].now[0]] = chara_x;
+        bullet_data[5].xy[1][bullet_data[5].now[0]] = chara_y;
+        chara_MP -= bullet_data[5].cost;
+        bullet_data[5].now[0] = (bullet_data[5].now[0] + 1)%bullet_data[5].number;
+        bullet_data[5].cooltime = false;
+      }
+    }
+  }
+  if(keyState['s'%256]){ //servant
+    if(bullet_data[6].cooltime && chara_MP - bullet_data[6].cost >= 0){
+      if(bullet_data[6].xy[0][bullet_data[6].now[0]] == 0 && bullet_data[6].xy[1][bullet_data[6].now[0]] == 0){
+        bullet_data[6].xy[0][bullet_data[6].now[0]] = chara_x-chara_w/2;
+        bullet_data[6].xy[1][bullet_data[6].now[0]] = chara_y-chara_w/2-20;
+        chara_MP -= bullet_data[6].cost;
+        bullet_data[6].now[0] = (bullet_data[6].now[0] + 1)%bullet_data[6].number;
+        bullet_data[6].cooltime = false;
+        servant_f = true;
+      }
+    }
+  }
 }
 
 void enemy_show(){
@@ -315,31 +372,32 @@ void enemy_show(){
 
 void b_hit_check(int m, int n){ // b =bullet
   bullet_data[m].hit[n] = false;
-  for (int i = 0; i < enemy_data.length; i++) {
-    if(enemy_data[i].show&& 0<= enemy_data[i].x && enemy_data[i].x <= width && 0 <= enemy_data[i].y && enemy_data[i].y <= height){
-      for (int j = 0; j < enemy_data[i].hit_scale.length; j++) {
-        int x1 = enemy_data[i].hit_scale[j][0] + enemy_data[i].x;
-        int x2 = x1 + enemy_data[i].hit_scale[j][2];
-        int y1 = enemy_data[i].hit_scale[j][1] + enemy_data[i].y;
-        int y2 = y1 + enemy_data[i].hit_scale[j][3];
-        if(x1 < bullet_data[m].xy[0][n] && bullet_data[m].xy[0][n] < x2 && y1 < bullet_data[m].xy[1][n] && bullet_data[m].xy[1][n] < y2){     
-          if(m != 4 && m!= 1){
-            bullet_data[m].xy[0][n] = 0;
-            bullet_data[m].xy[1][n] = 0;
-          }
-          bullet_data[m].hit[n] = true;
-            enemy_data[i].damage(m,n);
-        }
-        if(m == 1){
-          if((bullet_data[m].xy[0][n]+beam_h*20 > x1) && (bullet_data[m].xy[0][n] < x2)){
-            if((bullet_data[m].xy[1][n]+beam_h > y1) && (bullet_data[m].xy[1][n] < y2 )){
+  if(bullet_data[m].xy[0][n] != 0 && bullet_data[m].xy[1][n] != 0){
+    for (int i = 0; i < enemy_data.length; i++) {
+      if(enemy_data[i].show&& 0<= enemy_data[i].x && enemy_data[i].x <= width && 0 <= enemy_data[i].y && enemy_data[i].y <= height){
+        for (int j = 0; j < enemy_data[i].hit_scale.length; j++) {
+          int x1 = enemy_data[i].hit_scale[j][0] + enemy_data[i].x;
+          int x2 = x1 + enemy_data[i].hit_scale[j][2];
+          int y1 = enemy_data[i].hit_scale[j][1] + enemy_data[i].y;
+          int y2 = y1 + enemy_data[i].hit_scale[j][3];
+          if( m !=6 &&x1 < bullet_data[m].xy[0][n] && bullet_data[m].xy[0][n] < x2 && y1 < bullet_data[m].xy[1][n] && bullet_data[m].xy[1][n] < y2){     
+            if(m!= 1&& m != 4 ){ //beam moon servant
+              bullet_data[m].xy[0][n] = 0;
+              bullet_data[m].xy[1][n] = 0;
+            }
+            bullet_data[m].hit[n] = true;
               enemy_data[i].damage(m,n);
+          }
+          if(m == 1){
+            if((bullet_data[m].xy[0][n]+beam_h*20 > x1) && (bullet_data[m].xy[0][n] < x2)
+              && (bullet_data[m].xy[1][n]+beam_h > y1)&&(bullet_data[m].xy[1][n] < y2 )){
+                enemy_data[i].damage(m,n);
             }
           }
-        }
-        if(m == 3){ //wave
-          if( (x1-chara_x)*(x1-chara_x)+(y1-chara_y)*(y1-chara_y) <  wave_r[n]*wave_r[n]/4){ //とりあえず当たり判定は1箇所
-            enemy_data[i].damage(m,n);
+          if(m == 3){ //wave
+            if( (x1-chara_x)*(x1-chara_x)+(y1-chara_y)*(y1-chara_y) <  wave_r[n]*wave_r[n]/4){ //とりあえず当たり判定は1箇所
+              enemy_data[i].damage(m,n);
+            }
           }
         }
       }
