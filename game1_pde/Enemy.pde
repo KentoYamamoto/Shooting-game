@@ -8,6 +8,7 @@ class Enemy {
   int atk;
   float def;
   int exp;
+  int speed;
   int[][] hit_scale; 
   boolean show;
   Enemy(int X, int Y){
@@ -16,10 +17,10 @@ class Enemy {
   }
   void move(int n){
     if(this.x > 700 || 300<this.x &&this.x < 500 )
-      this.y -= 1;
+      this.y -= this.speed;
     else
-      this.y += 1;
-    this.x -= 1;
+      this.y += this.speed;
+    this.x -= this.speed;
   }
   void e_t01(){
     int[][] n = {{ 0, 0, 25, 25}}; //代入用
@@ -36,6 +37,7 @@ class Enemy {
     atk = 50;
     def = 1.0;
     exp = 1;
+    speed = 1;
     show = true;
   }
   void damage(int m, int n){
@@ -43,8 +45,8 @@ class Enemy {
     if(this.hp <= 0){
       chara_exp += this.exp;
       this.show = false;
-      x = 0;
-      y = 0;
+      this.x = width;
+      this.y = height;
     }
   }
 }
