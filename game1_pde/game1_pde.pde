@@ -49,7 +49,7 @@ void setup(){
     bullet_data[3] = new Bullet("wave", 10, 100, 10, 0,300, 0, 20, 1, 1, true, true);
     bullet_data[4] = new Bullet("moon", 10, 20, 4, 0, 15, 0, 10, 1, 1, true, true);
     bullet_data[5] = new Bullet("thunder", 20, 100, 10, 0, 15, 0, 15, 1, 1, true, true); 
-    bullet_data[6] = new Bullet("servant", 20, 10, 1, 0, 15, 0, 15, 1, 3, true, true);
+    bullet_data[6] = new Bullet("servant", 20, 5, 1, 0, 15, 0, 15, 1, 3, true, true);
     ricochet_hanten = new int[bullet_data[2].number];
     wave_r = new int[bullet_data[3].number];
     moon_count = new float[bullet_data[4].number];
@@ -399,9 +399,6 @@ void enemy_show(){
         enemy_data[i].show = false;
         enemy_data[i].x = width;
         enemy_data[i].y = height;
-        if(nearest_enemy == i){
-          nearest_enemy = width;
-        }
       }   
     }
   }
@@ -444,7 +441,7 @@ void b_hit_check(int m, int n){ // b =bullet
   }
 }
 
-void s_hit_check(int m, int n){
+void s_hit_check(int m, int n){ //servant  hit check
   for (int i = 0; i < enemy_data.length; i++) {
     if(enemy_data[i].show&& 0<= enemy_data[i].x && enemy_data[i].x <= width && 0 <= enemy_data[i].y && enemy_data[i].y <= height){
       for (int j = 0; j < enemy_data[i].hit_scale.length; j++) {
@@ -489,7 +486,10 @@ void chara_data(){
   }
     int[] chara_exp_table ={ 0, 0, 1, 2, 4, 8};
     if(chara_MP < chara_MAX_MP && frameCount%120 == 0){ //
-        chara_MP +=10;
+        if(chara_MP + 10 <= chara_MAX_MP)
+          chara_MP +=10;
+        else
+          chara_MP = chara_MAX_MP;
     }
     //HPバー
     float last_HP = (float)chara_HP/chara_MAX_HP;
@@ -540,10 +540,12 @@ void levelup(int n){
 
 void c_hit_check(){ //敵から自キャラへの当たり判定  
   for(int i=0; i < enemy_data.length; i++){
-    if((enemy_data[i].x - chara_x)*(enemy_data[i].x - chara_x) + (enemy_data[i].y - chara_y) * (enemy_data[i].y - chara_y) < chara_w*chara_w/4){
-      if(!chara_cool){
-        chara_HP -= enemy_data[i].atk;
-        chara_cool = true;
+    if(enemy_data[i].show){
+      if((enemy_data[i].x - chara_x)*(enemy_data[i].x - chara_x) + (enemy_data[i].y - chara_y) * (enemy_data[i].y - chara_y) < chara_w*chara_w/4){
+        if(!chara_cool){
+          chara_HP -= enemy_data[i].atk;
+          chara_cool = true;
+        }
       }
     }
   }

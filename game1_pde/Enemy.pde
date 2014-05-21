@@ -41,12 +41,14 @@ class Enemy {
     show = true;
   }
   void damage(int m, int n){
-    this.hp -=bullet_data[m].damage*def;
-    if(this.hp <= 0){
-      chara_exp += this.exp;
-      this.show = false;
-      this.x = width;
-      this.y = height;
+    if(this.show){
+      this.hp -=bullet_data[m].damage*def;
+      if(this.hp <= 0){
+        chara_exp += this.exp;
+        this.show = false;
+        this.x = width;
+        this.y = height;
+      }
     }
   }
 }
